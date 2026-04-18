@@ -52,9 +52,9 @@ def backtest(
 
     Parameters
     ----------
-    predictions : DataFrame with columns ['session', 'volume']
-                  OR dict mapping session -> volume
-                  'volume' is the target_position (number of shares to buy/sell).
+    predictions : DataFrame with columns ['session', 'target_position']
+                  OR dict mapping session -> target_position
+                  'target_position' is the number of shares to buy/sell.
     verbose     : print a summary table to stdout.
 
     Returns
@@ -66,12 +66,12 @@ def backtest(
     # Normalise input to DataFrame
     if isinstance(predictions, dict):
         df = pd.DataFrame(
-            list(predictions.items()), columns=["session", "volume"]
+            list(predictions.items()), columns=["session", "target_position"]
         )
     else:
         df = pd.DataFrame(predictions).rename(
-            columns={"target_position": "volume"}
-        )[["session", "volume"]]
+            columns={"target_position": "target_position"}
+        )[["session", "target_position"]]
 
     prices = _load_prices()
 
@@ -81,7 +81,7 @@ def backtest(
         print(f"[backtester] Warning: {missing} session(s) not found in train data.")
 
     result["ret"] = result["close_end"] / result["close_halfway"] - 1
-    result["pnl"] = result["volume"] * result["ret"]
+    result["pnl"] = result["target_position"] * result["ret"]
 
     pnl = result["pnl"]
     sharpe   = pnl.mean() / pnl.std() * 16 if pnl.std() > 0 else np.nan
